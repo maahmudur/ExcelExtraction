@@ -138,5 +138,4 @@ class _ExcelException:
 NOTE 
 
 the cases with start row, end row and date dict are a bit cumbersome, this might be much faster and reliably debug-able if the user just uses a template and inserts appropiate values into it, as situation demands. 
-
 """
