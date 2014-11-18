@@ -18,6 +18,8 @@ class ExcelExtraction:
 		"""
 
 
+		
+
 	def extract_all_files(self, path=None):
 		"""
 		extract all the raw data(.xls, .xlsx and .csv files) in the source folder and create a list(or dict) of DFs. each DF will contain a a single sheet's data. also the df will have 3 columns named as path, file and sheet which will contain the sheets path,file name and sheet name. Information about the month/unit/style might be embeded in those names and can used to retrieve from tham later. during extration it prints from where which file is being extracted and its status
