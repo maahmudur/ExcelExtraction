@@ -16,7 +16,9 @@ class ExcelExtraction:
 		"""
 		setup source folder path as self.source, using os.path.abspath()
 		"""
-
+		self.source_folder = os.path.abspath(os.pardir+"\\"+"source folder")
+		os.chdir(self.source_folder)
+		self.all_dfs=[] #holds all raw worksheets
 
 		
 
@@ -24,6 +26,87 @@ class ExcelExtraction:
 		"""
 		extract all the raw data(.xls, .xlsx and .csv files) in the source folder and create a list(or dict) of DFs. each DF will contain a a single sheet's data. also the df will have 3 columns named as path, file and sheet which will contain the sheets path,file name and sheet name. Information about the month/unit/style might be embeded in those names and can used to retrieve from tham later. during extration it prints from where which file is being extracted and its status
 		"""
+		all_dfs=[]
+		for root, dirs, files in os.walk(source_folder):    #traverse all the directories and subdirectories
+		    for file_ in files:								#open all the files
+		        if not (file_.lower().endswith(".xls") or file_.lower().endswith(".xlsx") or file_.lower().endswith("csv")):
+		        	continue
+		        if file_.startswith('~$'):                    
+		        	continue # we are only interested in excel/csv files, ignoring other files generated somehow
+
+		        path_file = os.path.join(root,file_)
+		        print "Extracting " +str(path_file)
+		        
+		        if file_.endswith('.csv'): 			  		# if csv file, extraction is simple
+		        	if "line code" in file_.lower(): 		# this is line code csv file
+		        		print "Skipping line code sheet"
+		        		continue
+		        	else:
+		        		temp_df=pd.read_csv(file_)			# read the csv file
+		        		temp_df['path']  = root				# keep the metadata
+		            	temp_df['file']  = file_
+		            	temp_df['sheet'] = 'csv'
+                        
+		        	self.all_dfs.append(temp_df)
+		        	continue
+
+
+		        try:
+		        	excel_obj=pd.ExcelFile(path_file)  			# in case excel file, generate sheet names
+		        except XLRDError:
+		        	print 'XLRDError on '+str(file_)
+		        	continue
+                    
+		        sheets=excel_obj.sheet_names
+		    
+		        for sheet in sheets:						# parse the sheets one by one
+		            extracted=False							# set a flag to indicate that the sheet is not parsed yet
+		            first_row=0								# we will try to start reading from first row
+		            while(not extracted and first_row<100 ):  
+		            	"""
+		            	if current/first_row is empty we will increase the value by 1 and try to read the sheet again, after crossing 100th row, we can assume that the sheet is empty and keep extracted flag as False
+		                """
+		                try:
+		                    temp_df=excel_obj.parse(sheet, header=first_row, parse_dates=True) 
+		                    extracted=True
+		                    
+		                except IndexError:
+		                    first_row += 1
+
+		            if extracted:   #if successful extraction is performed
+		            	temp_df['path']  = root
+		            	temp_df['file']  = file_
+		            	temp_df['sheet'] = sheet
+		            	print str(sheet)+ ' Success '+ str(first_row)
+
+		            	self.all_dfs.append(temp_df)
+		            else:# in case of empty sheet extracted flag remains false
+		            	print str(sheet)+ ' FAIL, '+ str(first_row)
+ 		print str(len(self.all_dfs)) + " sheets extracted"
+		return self.all_dfs     
+
+	def reset_index(self, all_dfs):
+		"""
+		unfortunately excel files are read with a convoluted multid-index format, which contains index level of only NaN values, this causes great problem in addressing the column or resetting index, if that kind of error occurs, it is converted into a temporary csv file. This should be done immediately after the extraction.
+
+		issue: need to delete this temporary csv file
+		"""
+		prev_path = os.path.abspath(os.curdir)
+		os.chdir(self.source_folder)
+		os.chdir(os.path.abspath(os.pardir))
+
+		for ind, df in enumerate(all_dfs):
+		    try:
+		        all_dfs[ind]=df.reset_index()
+		    except IndexError:
+		        df.to_csv('temp.csv')
+		        all_dfs[ind] = pd.read_csv('temp.csv')
+		    except ValueError:
+		        df.to_csv('temp.csv')
+		        all_dfs[ind] = pd.read_csv('temp.csv')
+
+		os.chdir(prev_path)
+		return all_dfs		
 
 	def reset_index(self, all_dfs):
 		"""
