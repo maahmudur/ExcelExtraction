@@ -2,7 +2,8 @@ class ExcelExtraction:
 	"""
 	This class provides the workflow tools to extract workbooks/sheets into pandas DF. 
 	workflow:
-		- start the notebook in the "code folder" and place all raw data in "source folder", both of these folder being place under same parent folder. Maintaining this directory structure is required.
+		- start the notebook in the "code folder" and place all raw data in "source folder", both of these folder being place 
+		  under same parent folder. Maintaining this directory structure is required.
 		- start an instance of ExcelExtration class
 		- extract raw data 
 		- if required, reset_index
@@ -22,11 +23,15 @@ class ExcelExtraction:
 
 		
 
-	def extract_all_files(self, path=None):
+	def extract_all_files(self, source_folder=None, print_log = False):
 		"""
 		extract all the raw data(.xls, .xlsx and .csv files) in the source folder and create a list(or dict) of DFs. each DF will contain a a single sheet's data. also the df will have 3 columns named as path, file and sheet which will contain the sheets path,file name and sheet name. Information about the month/unit/style might be embeded in those names and can used to retrieve from tham later. during extration it prints from where which file is being extracted and its status
 		"""
 		all_dfs=[]
+		
+		if not source_folder:
+			source_folder = self.source_folder
+
 		for root, dirs, files in os.walk(source_folder):    #traverse all the directories and subdirectories
 		    for file_ in files:								#open all the files
 		        if not (file_.lower().endswith(".xls") or file_.lower().endswith(".xlsx") or file_.lower().endswith("csv")):
@@ -35,11 +40,13 @@ class ExcelExtraction:
 		        	continue # we are only interested in excel/csv files, ignoring other files generated somehow
 
 		        path_file = os.path.join(root,file_)
-		        print "Extracting " +str(path_file)
+		        if print_log:
+		                    print "Extracting " +str(path_file)
 		        
 		        if file_.endswith('.csv'): 			  		# if csv file, extraction is simple
 		        	if "line code" in file_.lower(): 		# this is line code csv file
-		        		print "Skipping line code sheet"
+		        		if print_log:
+		        			print "Skipping line code sheet"
 		        		continue
 		        	else:
 		        		temp_df=pd.read_csv(file_, error_bad_lines=False)	# read the csv file #flag for when encountering error in parsing the file
@@ -77,12 +84,15 @@ class ExcelExtraction:
 		            	temp_df['path']  = root
 		            	temp_df['file']  = file_
 		            	temp_df['sheet'] = sheet
-		            	print str(sheet)+ ' Success '+ str(first_row)
+		            	if print_log:
+		            		print str(sheet)+ ' Success '+ str(first_row)
 
 		            	self.all_dfs.append(temp_df)
 		            else:# in case of empty sheet extracted flag remains false
-		            	print str(sheet)+ ' FAIL, '+ str(first_row)
- 		print str(len(self.all_dfs)) + " sheets extracted"
+		            	if print_log:
+		            		print str(sheet)+ ' FAIL, '+ str(first_row)
+ 		if print_log:
+ 			print str(len(self.all_dfs)) + " sheets extracted"
 		return self.all_dfs     
 
 	def reset_index(self, all_dfs):
