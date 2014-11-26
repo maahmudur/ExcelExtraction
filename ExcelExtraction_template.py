@@ -42,7 +42,7 @@ class ExcelExtraction:
 		        		print "Skipping line code sheet"
 		        		continue
 		        	else:
-		        		temp_df=pd.read_csv(file_)			# read the csv file
+		        		temp_df=pd.read_csv(file_, error_bad_lines=False)	# read the csv file #flag for when encountering error in parsing the file
 		        		temp_df['path']  = root				# keep the metadata
 		            	temp_df['file']  = file_
 		            	temp_df['sheet'] = 'csv'
