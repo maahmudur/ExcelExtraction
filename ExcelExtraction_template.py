@@ -154,7 +154,18 @@ class ExcelExtraction:
 		
 		returns a new list of df with the extracted data
 		
+		ISSUE: this workes only with single row header. header spread across multiple row/column needs to be done with more granular control.
+		ISSUE: columns without any headers will be dropped at next phase. So columns with values in them but no header needs to be dealth with previously, manipulating the start row.
 		"""
+		extracted_dfs={}
+		for ind, df in enumerate(all_dfs):
+			temp_df = df[start_row_dict[ind] : end_row_dict[ind]]
+			if (date_dict):
+				temp_df['_date_'] = date_dict[ind]
+			
+			temp_df.reset_index(inplace=True, drop=True)
+			extracted_dfs[ind] = temp_df
+		return extracted_dfs
 
 	def set_df_headers(self, extracted_dfs, metadata_cols=['path','file','sheet'], date_dict=None):
 		"""
