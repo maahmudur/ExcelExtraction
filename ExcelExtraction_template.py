@@ -108,11 +108,6 @@ class ExcelExtraction:
 		os.chdir(prev_path)
 		return all_dfs		
 
-	def reset_index(self, all_dfs):
-		"""
-		usually in case of excel files with lots of merged cells or empty column, the DF's tend to be generated in multiindex or empty columns. This results in all kinds of problem during future rese_index or even accessing values using index. It is much better to eliminate all kinds of multiindex and empty rows right here. DFs with totally empty columns cannot even be reset using regular reset_index(). We need to store the DF into a temporary .csv file and read it as DF from it. Since .csv has no concept of merged cells these problems go away in this way.
-		"""
-
 	def generate_date_dict(self, all_dfs, list_of_locations, numeric_column=False, date_obj_check=False, date_format=None):
 		"""
 		all_dfs : dict of DFs
