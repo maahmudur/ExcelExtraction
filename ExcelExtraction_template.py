@@ -98,6 +98,13 @@ class ExcelExtraction:
 		all_dfs : dict, all extracted dfs
 		return a list generate all possible columns across all the dfs 
 		"""
+		column_headers = []
+		for counter in xrange(len(all_dfs)):
+				column_headers.append(list(all_dfs[counter].columns))
+		unique_columns = [item for sublist in column_headers for item in sublist]
+		unique_columns = set(unique_columns)
+		return unique_columns
+
 
 	def store_all_dfs(df, all_dfs):
 		"""
