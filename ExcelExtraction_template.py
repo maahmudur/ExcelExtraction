@@ -204,13 +204,42 @@ class ExcelExtraction:
 		stores individual DFs in a seperate folder in source folder. So that they can be loaded later.
 		"""
 
-	def salary_sheet_summation(self, concat_df, keys=['line', 'month', 'year', 'designation'], numeric_columns=None):
+	def salary_sheet_summation(self, concat_df, cols=['line', 'month', 'year', 'designation'], numeric_columns=False):
 		"""
 		concat_df: DF, concatanation of salary sheets
 		list : we will be grouping by designations worked in line for a particular months
 
 		return a DF with all the numeric columns values summed up and groupd up against columns in keys list. If there should be any specific restriction then only the desired columns can be passed as numeric_columns
 		"""
+
+		if not numeric_columns: 
+			numeric_columns = list(concat_df.sum(numeric_only=True).index)
+		
+		final_df = pd.DataFrame(columns=numeric_columns)
+		for item in cols:
+			final_df[item] = np.nan
+
+		group = concat_df.groupby(by=keys)
+
+		for keys, data in group:
+			
+			nan_flag=False
+			for item in keys:
+				if pd.isnull(item):
+					nan_flag = True
+					break
+			if nan_flag:
+				continue
+
+		values = pd.Series()
+		for i,j in zip(cols, keys):
+			values[i] = j
+			values_sum = data.sum(numeric_only=True)
+			values = values.apppend(values_sum)
+
+			final_df.loc[len(final_df)] = values
+
+		return final_df
 
 	def in_out_time_summation(self, concat_df, time_columns, keys=['line', 'date', 'designation']):
 		"""
