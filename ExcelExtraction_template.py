@@ -96,13 +96,14 @@ class ExcelExtraction:
 	def all_unique_columns(self, all_dfs):
 		"""
 		all_dfs : dict, all extracted dfs
-		return a list generate all possible columns across all the dfs 
+		returns a list that contains all the unique columns in all the dataframes in a sorted manner 
 		"""
 		column_headers = []
+		unique_columns = []
 		for counter in xrange(len(all_dfs)):
-				column_headers.append(list(all_dfs[counter].columns))
-		unique_columns = [item for sublist in column_headers for item in sublist]
-		unique_columns = set(unique_columns)
+    		column_headers.extend(list(all_dfs[counter].columns))
+		unique_columns = set(column_headers)
+		unique_columns = list(unique_columns)
 		return unique_columns
 
 
