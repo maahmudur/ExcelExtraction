@@ -219,6 +219,7 @@ class ExcelExtraction:
 		list : we will be grouping by designations worked in line for a particular months
 
 		return a DF with all the numeric columns values summed up and groupd up against columns in keys list. If there should be any specific restriction then only the desired columns can be passed as numeric_columns
+		ISSUE: please introduce a 0 filled late or OT column and pass them along the func(). and drop them later from both original and compressed DF
 		"""
 
 		if not numeric_columns: 
@@ -250,14 +251,73 @@ class ExcelExtraction:
 
 		return final_df
 
-	def in_out_time_summation(self, concat_df, time_columns, keys=['line', 'date', 'designation']):
+	def in_out_time_summation(self, concat_df, date_col, line_col, desig_col,
+					time_columns=["InTime","OutTime","LateMinute","OTMinute"]):
 		"""
 		concat_df: DF, concatanation of in-out times 
 		list : we will be grouping by designations worked in line for a particular date
 
-		return a DF with the time columns values (working hour, late time) summed up and groupd up against columns in keys list. 
-		ISSUE: summation of time (hours:minutes) needs to be looked at 
+		return a DF with the time columns values (working hour, late time) summed up and groupd up against columns in keys list.
+		
 		"""
+		group = concat_df.groupby(by=[date_col, line_col, desig_col])
+		final_df=pd.DataFrame(columns=['date', 'line_code', 'designation', 'worker count','working minutes', 
+                               'late minutes', 'OT minutes'])
+		    
+		    values = pd.Series()
+		    values['date'] = i[0].date()
+		    values['line_code'] = i[1]
+		    values['designation'] = i[2]
+		    values['worker count'] = len(j.designation)
+		    
+		    total_minutes = 0
+		    late_minutes = 0
+		    OT_minutes = 0
+		    
+		    start_times = j[time_columns[0]]
+		    end_times = j[time_columns[1]]
+		    late_times = j[time_columns[2]]
+		    ot_times = j[time_columns[3]]
+		        
+		    for start, end, late, ot in zip(start_times, end_times, late_times, ot_times ):
+		        #print '########',start,'#',end,'#',late,'#',ot,'############'
+		            
+		        if (pd.notnull(start) & pd.notnull(end) ) & (start != '00:00'):  
+		            start_time = datetime.time(hour   = int(start.split(":")[0]),
+		                                       minute = int(start.split(":")[1]) )
+		            
+		            end_time = datetime.time(  hour   = int(end.split(":")[0]),
+		                                       minute = int(end.split(":")[1]) )
+		            
+		            today = datetime.datetime.today()
+		            today_start =datetime.datetime(today.year, today.month, today.day, start_time.hour,start_time.minute)
+		            today_end  = datetime.datetime(today.year, today.month, today.day, end_time.hour,end_time.minute)
+		            diff = today_end - today_start
+		            minutes_worked = diff.seconds/60
+		            total_minutes += minutes_worked
+		                
+		            
+		        if (pd.notnull(late)):
+		            hr = int(late.split(":")[0])
+		            try:
+		                mn = int(late.split(":")[1])
+		            except IndexError:
+		                mn = 0
+		            lt= (hr*60)+ mn
+		            late_minutes += lt
+		
+		        OT_minutes += ot
+		
+		            
+		                    
+		    values['total working minutes'] = total_minutes
+		    values['late minutes'] = late_minutes
+		    values['OT minutes'] = OT_minutes
+		        
+		    final_df.loc[len(final_df)] = values
+		    
+		return final_df	
+		
 
 	def store_final_df(df, name_, top_level=False):
 		"""
@@ -265,6 +325,7 @@ class ExcelExtraction:
 		this can also 
 		df is the final df and as name_ "<fact code> <report type> <author> <date>" format will suffice
 		"""
+		
 
 
 class _ExcelException:
