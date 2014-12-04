@@ -282,7 +282,7 @@ class ExcelExtraction:
 		    for start, end, late, ot in zip(start_times, end_times, late_times, ot_times ):
 		        #print '########',start,'#',end,'#',late,'#',ot,'############'
 		            
-		        if (pd.notnull(start) & pd.notnull(end) ) & (start != '00:00'):  
+		        if (pd.notnull(start) & pd.notnull(end) ):  
 		            start_time = datetime.time(hour   = int(start.split(":")[0]),
 		                                       minute = int(start.split(":")[1]) )
 		            
