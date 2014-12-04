@@ -252,7 +252,7 @@ class ExcelExtraction:
 		return final_df
 
 	def in_out_time_summation(self, concat_df, date_col, line_col, desig_col,
-					time_columns=["InTime","OutTime","LateMinute","OTMinute"]):
+					time_columns=["InTime","OutTime","LateMinute","OTMinute"], time_format = False):
 		"""
 		concat_df: DF, concatanation of in-out times 
 		list : we will be grouping by designations worked in line for a particular date
@@ -282,12 +282,41 @@ class ExcelExtraction:
 		    for start, end, late, ot in zip(start_times, end_times, late_times, ot_times ):
 		        #print '########',start,'#',end,'#',late,'#',ot,'############'
 		            
-		        if (pd.notnull(start) & pd.notnull(end) ):  
-		            start_time = datetime.time(hour   = int(start.split(":")[0]),
-		                                       minute = int(start.split(":")[1]) )
+		        if (pd.notnull(start) & pd.notnull(end) ):
+
+		        	if time_format:
+
+			            if (start.split()[1] == 'pm') & (start.split()[0].split(':')[0] != '12'):
+			                hr = int(start.split()[0].split(':')[0]) + 12
+			                mn = int(start.split()[0].split(':')[1])
+			                start = str(hr)+':'+str(mn)
+			       
+			            else:
+			                hr = int(start.split()[0].split(':')[0])
+			                mn = int(start.split()[0].split(':')[1])
+			                start = str(hr)+':'+str(mn)
+			                
+			                
+			            start_time = datetime.time(hour   = int(start.split(":")[0]), minute = int(start.split(":")[1]) )
+
+			            if (end.split()[1] == 'pm') & (end.split()[0].split(':')[0] != '12'):
+			                hr = int(end.split()[0].split(':')[0]) + 12
+			                mn = int(end.split()[0].split(':')[1])
+			                end = str(hr)+':'+str(mn)
+			                
+			            else:
+			                hr = int(end.split()[0].split(':')[0])
+			                mn = int(end.split()[0].split(':')[1])
+			                end = str(hr)+':'+str(mn)
+			               
+			            
+			            end_time = datetime.time(  hour   = int(end.split(":")[0]), minute = int(end.split(":")[1]) )
+
+			        else:
+
+			        	start_time = datetime.time(hour   = int(start.split(":")[0]), minute = int(start.split(":")[1]) )
+			        	end_time = datetime.time(  hour   = int(end.split(":")[0]), minute = int(end.split(":")[1]) )
 		            
-		            end_time = datetime.time(  hour   = int(end.split(":")[0]),
-		                                       minute = int(end.split(":")[1]) )
 		            
 		            today = datetime.datetime.today()
 		            today_start =datetime.datetime(today.year, today.month, today.day, start_time.hour,start_time.minute)
