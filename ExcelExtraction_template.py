@@ -322,10 +322,15 @@ class ExcelExtraction:
 		            today_start =datetime.datetime(today.year, today.month, today.day, start_time.hour,start_time.minute)
 		            today_end  = datetime.datetime(today.year, today.month, today.day, end_time.hour,end_time.minute)
 		            diff = today_end - today_start
-		            minutes_worked = diff.seconds/60
+
+		            if int(start.split(':')[0])>12 | int(end.split(':')[0])<12:
+		            	minutes_worked = diff.seconds/60
+		            else:
+		                minutes_worked = ((diff.seconds)-3600)/60
+		            
 		            total_minutes += minutes_worked
 		                
-		            
+		        #handling late time and converting it to minutes     
 		        if (pd.notnull(late)):
 		            hr = int(late.split(":")[0])
 		            try:
@@ -334,8 +339,16 @@ class ExcelExtraction:
 		                mn = 0
 		            lt= (hr*60)+ mn
 		            late_minutes += lt
-		
-		        OT_minutes += ot
+				
+				#handling overtime and converting it to minutes     
+		        if (pd.notnull(ot)):
+		            hr = int(ot.split(".")[0])
+		            try:
+		                mn = int(ot.split(".")[1])
+		            except IndexError:
+		                mn = 0
+		            ott= (hr*60)+ mn
+		            OT_minutes += ott
 		
 		            
 		                    
