@@ -115,6 +115,11 @@ class ExcelExtraction:
 		        df.to_csv('temp.csv')
 		        all_dfs[ind] = pd.read_csv('temp.csv')
 
+		try:
+			os.remove(temp.csv)
+		except OSError:
+			pass
+
 		os.chdir(prev_path)
 		return all_dfs		
 
@@ -184,6 +189,27 @@ class ExcelExtraction:
 		These 2 issues needs to be resolved before starting the actual data extraction. 
 		
 		"""
+		for ind, df in extracted_dfs.iteritems():
+			cols = df.columns
+			new_cols = df.ix[df.index[0]]
+
+			"""
+			replace the values at index[0] with path/file/sheet and any other columns.
+			"""
+			
+			for item in metadata_cols:
+				val = cols[cols==item]
+				new_cols[val] = item 
+
+			
+			if (date_dict):
+				date_col = cols[cols=='_date_']
+			
+			df.columns = new_cols
+			df.drop(df.index[0],inplace=True)
+			df.reset_index(inplace=True, drop=False)
+		
+		return extracted_dfs
 
 
 	def all_column_variations(self, all_dfs):
@@ -191,6 +217,10 @@ class ExcelExtraction:
 		all_dfs : dict, all extracted dfs
 		return a dict with all possible column combinations
 		"""
+		column_formats=[]
+		for df in all_dfs.values():
+			column_formats.append(tuple(df.columns))
+		return pd.Series(column_formats).value_counts()
 
 	def all_unique_columns(self, all_dfs):
 		"""
@@ -207,11 +237,24 @@ class ExcelExtraction:
 		return column_headers
 
 
-	def store_all_dfs(df, all_dfs):
+	def store_all_dfs(self, all_dfs):
 		"""
 		all_dfs : dict, containing all extracted and normalized dfs just before the concatanation
 		stores individual DFs in a seperate folder in source folder. So that they can be loaded later.
 		"""
+		path = self.source_folder + "/DataFrames"
+
+		os.chdir(self.source_folder)
+		if not os.path.exists(path):
+		    os.makedirs("DataFrames")
+
+		for filename, df in all_dfs.iteritems(): 
+			with open(os.path.join(path, filename), 'wb') as temp_file:
+				temp_file.write(buff)
+
+		os.listdir(path)
+
+		return
 
 	def salary_sheet_summation(self, concat_df, cols=['line', 'month', 'year', 'designation'], numeric_columns=False):
 		"""
@@ -221,7 +264,6 @@ class ExcelExtraction:
 		return a DF with all the numeric columns values summed up and groupd up against columns in keys list. If there should be any specific restriction then only the desired columns can be passed as numeric_columns
 		ISSUE: please introduce a 0 filled late or OT column and pass them along the func(). and drop them later from both original and compressed DF
 		"""
-
 		if not numeric_columns: 
 			numeric_columns = list(concat_df.sum(numeric_only=True).index)
 		
@@ -264,111 +306,117 @@ class ExcelExtraction:
 		final_df=pd.DataFrame(columns=['date', 'line_code', 'designation', 'worker count','working minutes', 
                                'late minutes', 'OT minutes'])
 		    
-		    values = pd.Series()
-		    values['date'] = i[0].date()
-		    values['line_code'] = i[1]
-		    values['designation'] = i[2]
-		    values['worker count'] = len(j.designation)
-		    
-		    total_minutes = 0
-		    late_minutes = 0
-		    OT_minutes = 0
-		    
-		    start_times = j[time_columns[0]]
-		    end_times = j[time_columns[1]]
-		    late_times = j[time_columns[2]]
-		    ot_times = j[time_columns[3]]
-		        
-		    for start, end, late, ot in zip(start_times, end_times, late_times, ot_times ):
-		        #print '########',start,'#',end,'#',late,'#',ot,'############'
-		            
-		        if (pd.notnull(start) & pd.notnull(end) ):
-
-		        	if time_format:
-
-			            if (start.split()[1] == 'pm') & (start.split()[0].split(':')[0] != '12'):
-			                hr = int(start.split()[0].split(':')[0]) + 12
-			                mn = int(start.split()[0].split(':')[1])
-			                start = str(hr)+':'+str(mn)
-			       
-			            else:
-			                hr = int(start.split()[0].split(':')[0])
-			                mn = int(start.split()[0].split(':')[1])
-			                start = str(hr)+':'+str(mn)
-			                
-			                
-			            start_time = datetime.time(hour   = int(start.split(":")[0]), minute = int(start.split(":")[1]) )
-
-			            if (end.split()[1] == 'pm') & (end.split()[0].split(':')[0] != '12'):
-			                hr = int(end.split()[0].split(':')[0]) + 12
-			                mn = int(end.split()[0].split(':')[1])
-			                end = str(hr)+':'+str(mn)
-			                
-			            else:
-			                hr = int(end.split()[0].split(':')[0])
-			                mn = int(end.split()[0].split(':')[1])
-			                end = str(hr)+':'+str(mn)
-			               
-			            
-			            end_time = datetime.time(  hour   = int(end.split(":")[0]), minute = int(end.split(":")[1]) )
-
-			        else:
-
-			        	start_time = datetime.time(hour   = int(start.split(":")[0]), minute = int(start.split(":")[1]) )
-			        	end_time = datetime.time(  hour   = int(end.split(":")[0]), minute = int(end.split(":")[1]) )
-		            
-		            
-		            today = datetime.datetime.today()
-		            today_start =datetime.datetime(today.year, today.month, today.day, start_time.hour,start_time.minute)
-		            today_end  = datetime.datetime(today.year, today.month, today.day, end_time.hour,end_time.minute)
-		            diff = today_end - today_start
-
-		            if int(start.split(':')[0])>12 | int(end.split(':')[0])<12:
-		            	minutes_worked = diff.seconds/60
-		            else:
-		                minutes_worked = ((diff.seconds)-3600)/60
-		            
-		            total_minutes += minutes_worked
-		                
-		        #handling late time and converting it to minutes     
-		        if (pd.notnull(late)):
-		            hr = int(late.split(":")[0])
-		            try:
-		                mn = int(late.split(":")[1])
-		            except IndexError:
-		                mn = 0
-		            lt= (hr*60)+ mn
-		            late_minutes += lt
-				
-				#handling overtime and converting it to minutes     
-		        if (pd.notnull(ot)):
-		            hr = int(ot.split(".")[0])
-		            try:
-		                mn = int(ot.split(".")[1])
-		            except IndexError:
-		                mn = 0
-		            ott= (hr*60)+ mn
-		            OT_minutes += ott
-		
-		            
-		                    
+	    values = pd.Series()
+	    values['date'] = i[0].date()
+	    values['line_code'] = i[1]
+	    values['designation'] = i[2]
+	    values['worker count'] = len(j.designation)
+	    
+	    total_minutes = 0
+	    late_minutes = 0
+	    OT_minutes = 0
+    
+	    start_times = j[time_columns[0]]
+	    end_times = j[time_columns[1]]
+	    late_times = j[time_columns[2]]
+	    ot_times = j[time_columns[3]]
+	        
+	    for start, end, late, ot in zip(start_times, end_times, late_times, ot_times ):
+	        #print '########',start,'#',end,'#',late,'#',ot,'############'
+	            
+	        if (pd.notnull(start) & pd.notnull(end) ) & (start != '00:00'):  
+	            start_time = datetime.time(hour   = int(start.split(":")[0]),
+	                                       minute = int(start.split(":")[1]) )
+	            
+	            end_time = datetime.time(  hour   = int(end.split(":")[0]),
+	                                       minute = int(end.split(":")[1]) )
+	            
+	            today = datetime.datetime.today()
+	            today_start =datetime.datetime(today.year, today.month, today.day, start_time.hour,start_time.minute)
+	            today_end  = datetime.datetime(today.year, today.month, today.day, end_time.hour,end_time.minute)
+	            diff = today_end - today_start
+	            minutes_worked = diff.seconds/60
+	            total_minutes += minutes_worked
+	                
+	            
+	        if (pd.notnull(late)):
+	            hr = int(late.split(":")[0])
+	            try:
+	                mn = int(late.split(":")[1])
+	            except IndexError:
+	                mn = 0
+	            lt= (hr*60)+ mn
+	            late_minutes += lt
+	
+	        OT_minutes += ot
+	      
 		    values['total working minutes'] = total_minutes
 		    values['late minutes'] = late_minutes
 		    values['OT minutes'] = OT_minutes
 		        
 		    final_df.loc[len(final_df)] = values
-		    
+	    
 		return final_df	
-		
+	
 
-	def store_final_df(df, name_, top_level=False):
+	def store_final_df(self, df, name_, top_level=False):
 		"""
 		storing final df as pickle and csv format together at top level of working directory (beside source/code folder)
 		this can also 
 		df is the final df and as name_ "<fact code> <report type> <author> <date>" format will suffice
 		"""
+		os.chdir(self.source_folder)
+		top_path=os.path.abspath(os.pardir)
+		os.chdir(top_path)
+		
+		df.to_pickle(str(name)+"pickle")
+		df.to_csv(str(name)+'.csv')
+		return
 		
 
+	def verify_value_counts(self, Harmonised_DF):
+		"""
+		prints out all the columns, their count() and their unique data type 
+		"""	
+		cols = Harmonised_DF.columns
+		frequency_df = pd.DataFrame(columns=['columns','count', '%', 'types'])
+		print "Total Observation Count:" + str(len(Harmonised_DF))
+	
+		for col in cols:
+		    frequency_df.loc[len(frequency_df)]  =[ col, Harmonised_DF[col].count(), (Harmonised_DF[col].count()*100)/len(Harmonised_DF), set([type(item) for item in Harmonised_DF[col] ]) ]
+		
+		HTML(frequency_df.sort('%')[::-1].to_html())
+
+		return
+
+	def check_multiple_observation(self, concat_df, groupby_cols):
+		"""
+		look for multiple observation under the columns in groupby_cols, intended for chekcing if there are multiple (date, line) observation.
+		If the lenth of the returned list is more zero, we need to check the raw data to see if it is actually valid
+		"""
+
+		multi_observation=[]
+		group= concat_df.groupby(by=groupby_cols)
+		for i,j in group:
+			if len(j)>1:
+				multi_observation.append(i)
+		print len(multi_observation) # if its>0 please check the raw/compiled data to ensure that its ok
+		return multi_observation
+
+	def verify_values_range(df,cols):
+		"""
+		returns a df with min and max values in columns in cols of dataframe df
+		here cols are a list of columns with numerical data.
+		"""
+		min_max_df=pd.DataFrame(columns=['column','min','max'])
+		numeric_cols=cols #populate the list with columns of numeric values
+
+		for col in numeric_cols:
+			l=(df[pd.notnull(df[col])][col].unique())
+			l.sort()
+			min_max_df.loc[len(min_max_df)] = [col, l[:3], l[-3:]]
+
+		return min_max_df
 
 class _ExcelException:
 	def __init__(self, value):
