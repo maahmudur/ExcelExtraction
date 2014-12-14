@@ -145,6 +145,24 @@ class ExcelExtraction:
 
 		returns start_row_dict, if in case of error like no column being found at any location / no value found at any column, specify the error against the corresponding key  
 		"""
+		"""
+		<<PLACEHOLDER SAMPLE>>
+
+		try:
+                df[df.columns[0]] = df[df.columns[0]].astype(str)
+                val = df[df[df.columns[0]].str.contains("Date")].index[0]
+            except IndexError:
+                try:
+                    df[df.columns[1]] = df[df.columns[1]].astype(str)
+                    val = df[df[df.columns[1]].str.contains("Date")].index[0]
+                except IndexError:
+                    try:
+                        df[df.columns[2]] = df[df.columns[2]].astype(str)
+                        val = df[df[df.columns[2]].str.contains("Date")].index[0]
+                    except IndexError:
+                        print 'indexerror ' + str(ind)
+                        continue
+		"""
 
 
 	def generate_end_row(self, all_dfs, list_of_locations, numeric_column=False):
