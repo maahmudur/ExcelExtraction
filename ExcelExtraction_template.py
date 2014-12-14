@@ -116,7 +116,7 @@ class ExcelExtraction:
 		        all_dfs[ind] = pd.read_csv('temp.csv')
 
 		try:
-			os.remove(temp.csv)
+			os.remove("temp.csv")
 		except OSError:
 			pass
 
@@ -294,7 +294,7 @@ class ExcelExtraction:
 		return final_df
 
 	def in_out_time_summation(self, concat_df, date_col, line_col, desig_col,
-					time_columns=["InTime","OutTime","LateMinute","OTMinute"], time_format = False):
+					time_columns=["InTime","OutTime","LateMinute","OTMinute"]):
 		"""
 		concat_df: DF, concatanation of in-out times 
 		list : we will be grouping by designations worked in line for a particular date
@@ -359,7 +359,7 @@ class ExcelExtraction:
 		return final_df	
 	
 
-	def store_final_df(self, df, name_, top_level=False):
+	def store_final_df(self, df, name, top_level=False):
 		"""
 		storing final df as pickle and csv format together at top level of working directory (beside source/code folder)
 		this can also 
@@ -385,9 +385,9 @@ class ExcelExtraction:
 		for col in cols:
 		    frequency_df.loc[len(frequency_df)]  =[ col, Harmonised_DF[col].count(), (Harmonised_DF[col].count()*100)/len(Harmonised_DF), set([type(item) for item in Harmonised_DF[col] ]) ]
 		
-		HTML(frequency_df.sort('%')[::-1].to_html())
+		frequency_df=frequency_df.sort('%')[::-1]
 
-		return
+		return frequency_df
 
 	def check_multiple_observation(self, concat_df, groupby_cols):
 		"""
@@ -423,6 +423,7 @@ class _ExcelException:
 		self.value = value
 	def __str__(self):
 		return repr(self.value)
+
 
 """
 NOTE 
