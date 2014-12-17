@@ -312,7 +312,7 @@ class ExcelExtraction:
 		return final_df
 
 	def in_out_time_summation(self, concat_df, date_col, line_col, desig_col,
-					time_columns=["InTime","OutTime","LateMinute","OTMinute"]):
+					time_columns=["InTime","OutTime","LateMinute","OTMinute"], time_format = False):
 		"""
 		concat_df: DF, concatanation of in-out times 
 		list : we will be grouping by designations worked in line for a particular date
@@ -324,56 +324,100 @@ class ExcelExtraction:
 		final_df=pd.DataFrame(columns=['date', 'line_code', 'designation', 'worker count','working minutes', 
                                'late minutes', 'OT minutes'])
 		    
-	    values = pd.Series()
-	    values['date'] = i[0].date()
-	    values['line_code'] = i[1]
-	    values['designation'] = i[2]
-	    values['worker count'] = len(j.designation)
-	    
-	    total_minutes = 0
-	    late_minutes = 0
-	    OT_minutes = 0
-    
-	    start_times = j[time_columns[0]]
-	    end_times = j[time_columns[1]]
-	    late_times = j[time_columns[2]]
-	    ot_times = j[time_columns[3]]
-	        
-	    for start, end, late, ot in zip(start_times, end_times, late_times, ot_times ):
-	        #print '########',start,'#',end,'#',late,'#',ot,'############'
-	            
-	        if (pd.notnull(start) & pd.notnull(end) ) & (start != '00:00'):  
-	            start_time = datetime.time(hour   = int(start.split(":")[0]),
-	                                       minute = int(start.split(":")[1]) )
-	            
-	            end_time = datetime.time(  hour   = int(end.split(":")[0]),
-	                                       minute = int(end.split(":")[1]) )
-	            
-	            today = datetime.datetime.today()
-	            today_start =datetime.datetime(today.year, today.month, today.day, start_time.hour,start_time.minute)
-	            today_end  = datetime.datetime(today.year, today.month, today.day, end_time.hour,end_time.minute)
-	            diff = today_end - today_start
-	            minutes_worked = diff.seconds/60
-	            total_minutes += minutes_worked
-	                
-	            
-	        if (pd.notnull(late)):
-	            hr = int(late.split(":")[0])
-	            try:
-	                mn = int(late.split(":")[1])
-	            except IndexError:
-	                mn = 0
-	            lt= (hr*60)+ mn
-	            late_minutes += lt
-	
-	        OT_minutes += ot
-	      
+		    values = pd.Series()
+		    values['date'] = i[0].date()
+		    values['line_code'] = i[1]
+		    values['designation'] = i[2]
+		    values['worker count'] = len(j.designation)
+		    
+		    total_minutes = 0
+		    late_minutes = 0
+		    OT_minutes = 0
+		    
+		    start_times = j[time_columns[0]]
+		    end_times = j[time_columns[1]]
+		    late_times = j[time_columns[2]]
+		    ot_times = j[time_columns[3]]
+		        
+		    for start, end, late, ot in zip(start_times, end_times, late_times, ot_times ):
+		        #print '########',start,'#',end,'#',late,'#',ot,'############'
+		            
+		        if (pd.notnull(start) & pd.notnull(end) ):
+
+		        	if time_format:
+
+			            if (start.split()[1] == 'pm') & (start.split()[0].split(':')[0] != '12'):
+			                hr = int(start.split()[0].split(':')[0]) + 12
+			                mn = int(start.split()[0].split(':')[1])
+			                start = str(hr)+':'+str(mn)
+			       
+			            else:
+			                hr = int(start.split()[0].split(':')[0])
+			                mn = int(start.split()[0].split(':')[1])
+			                start = str(hr)+':'+str(mn)
+			                
+			                
+			            start_time = datetime.time(hour   = int(start.split(":")[0]), minute = int(start.split(":")[1]) )
+
+			            if (end.split()[1] == 'pm') & (end.split()[0].split(':')[0] != '12'):
+			                hr = int(end.split()[0].split(':')[0]) + 12
+			                mn = int(end.split()[0].split(':')[1])
+			                end = str(hr)+':'+str(mn)
+			                
+			            else:
+			                hr = int(end.split()[0].split(':')[0])
+			                mn = int(end.split()[0].split(':')[1])
+			                end = str(hr)+':'+str(mn)
+			               
+			            
+			            end_time = datetime.time(  hour   = int(end.split(":")[0]), minute = int(end.split(":")[1]) )
+
+			        else:
+
+			        	start_time = datetime.time(hour   = int(start.split(":")[0]), minute = int(start.split(":")[1]) )
+			        	end_time = datetime.time(  hour   = int(end.split(":")[0]), minute = int(end.split(":")[1]) )
+		            
+		            
+		            today = datetime.datetime.today()
+		            today_start =datetime.datetime(today.year, today.month, today.day, start_time.hour,start_time.minute)
+		            today_end  = datetime.datetime(today.year, today.month, today.day, end_time.hour,end_time.minute)
+		            diff = today_end - today_start
+
+		            if int(start.split(':')[0])>12 | int(end.split(':')[0])<12:
+		            	minutes_worked = diff.seconds/60
+		            else:
+		                minutes_worked = ((diff.seconds)-3600)/60
+		            
+		            total_minutes += minutes_worked
+		                
+		        #handling late time and converting it to minutes     
+		        if (pd.notnull(late)):
+		            hr = int(late.split(":")[0])
+		            try:
+		                mn = int(late.split(":")[1])
+		            except IndexError:
+		                mn = 0
+		            lt= (hr*60)+ mn
+		            late_minutes += lt
+				
+				#handling overtime and converting it to minutes     
+		        if (pd.notnull(ot)):
+		            hr = int(ot.split(".")[0])
+		            try:
+		                mn = int(ot.split(".")[1])
+		            except IndexError:
+		                mn = 0
+		            ott= (hr*60)+ mn
+		            OT_minutes += ott
+		
+		            
+		                    
 		    values['total working minutes'] = total_minutes
 		    values['late minutes'] = late_minutes
 		    values['OT minutes'] = OT_minutes
 		        
 		    final_df.loc[len(final_df)] = values
-	    
+		    
 		return final_df	
 	
 
