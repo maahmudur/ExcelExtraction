@@ -323,7 +323,10 @@ class ExcelExtraction:
 		group = concat_df.groupby(by=[date_col, line_col, desig_col])
 		final_df=pd.DataFrame(columns=['date', 'line_code', 'designation', 'worker count','working minutes', 
                                'late minutes', 'OT minutes'])
+
 		    
+		for i , j in group:
+
 		    values = pd.Series()
 		    values['date'] = i[0].date()
 		    values['line_code'] = i[1]
@@ -378,20 +381,20 @@ class ExcelExtraction:
 			        	end_time = datetime.time(  hour   = int(end.split(":")[0]), minute = int(end.split(":")[1]) )
 		            
 		            
-		            today = datetime.datetime.today()
-		            today_start =datetime.datetime(today.year, today.month, today.day, start_time.hour,start_time.minute)
-		            today_end  = datetime.datetime(today.year, today.month, today.day, end_time.hour,end_time.minute)
-		            diff = today_end - today_start
+	            today = datetime.datetime.today()
+	            today_start =datetime.datetime(today.year, today.month, today.day, start_time.hour,start_time.minute)
+	            today_end  = datetime.datetime(today.year, today.month, today.day, end_time.hour,end_time.minute)
+	            diff = today_end - today_start
 
-		            if int(start.split(':')[0])>12 | int(end.split(':')[0])<12:
-		            	minutes_worked = diff.seconds/60
-		            else:
-		                minutes_worked = ((diff.seconds)-3600)/60
-		            
-		            total_minutes += minutes_worked
+	            if int(start.split(':')[0])>12 | int(end.split(':')[0])<12:
+	            	minutes_worked = diff.seconds/60
+	            else:
+	                minutes_worked = ((diff.seconds)-3600)/60
+	            
+	            total_minutes += minutes_worked
 		                
 		        #handling late time and converting it to minutes     
-		        if (pd.notnull(late)):
+	            if (pd.notnull(late)):
 		            hr = int(late.split(":")[0])
 		            try:
 		                mn = int(late.split(":")[1])
@@ -401,7 +404,7 @@ class ExcelExtraction:
 		            late_minutes += lt
 				
 				#handling overtime and converting it to minutes     
-		        if (pd.notnull(ot)):
+	            if (pd.notnull(ot)):
 		            hr = int(ot.split(".")[0])
 		            try:
 		                mn = int(ot.split(".")[1])
@@ -412,11 +415,11 @@ class ExcelExtraction:
 		
 		            
 		                    
-		    values['total working minutes'] = total_minutes
-		    values['late minutes'] = late_minutes
-		    values['OT minutes'] = OT_minutes
-		        
-		    final_df.loc[len(final_df)] = values
+			    values['total working minutes'] = total_minutes
+			    values['late minutes'] = late_minutes
+			    values['OT minutes'] = OT_minutes
+			        
+			    final_df.loc[len(final_df)] = values
 		    
 		return final_df	
 	
