@@ -403,7 +403,7 @@ class ExcelExtraction:
 		            lt= (hr*60)+ mn
 		            late_minutes += lt
 				
-				#handling overtime and converting it to minutes     
+			#handling overtime and converting it to minutes     
 	            if (pd.notnull(ot)):
 		            hr = int(ot.split(".")[0])
 		            try:
