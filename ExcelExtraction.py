@@ -132,7 +132,9 @@ def set_columns(all_dfs, column_depth=1, metadata_cols=['path','file','sheet']):
 
 		else:
 			new_cols = []
-			rows = df.ix[df.index[:column_depth]:]
+			rows = df.ix[df.index[:column_depth]]
+			rows.ix[rows.index[0]]=rows.ix[rows.index[0]].fillna(method='ffill')
+
 			for c in rows.columns:
 				if c in metadata_cols:
 					new_cols.append(c)
@@ -140,7 +142,7 @@ def set_columns(all_dfs, column_depth=1, metadata_cols=['path','file','sheet']):
 				else:
 					col_ = ''.join([str(item)+'_' for item in rows[c] if pd.notnull(item) ])			
 					new_cols.append(col_)
-					
+
 			df.columns = new_cols
 			df.drop(df.index[:column_depth],inplace=True)
 			df.reset_index(inplace=True, drop=False)	
