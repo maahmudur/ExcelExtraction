@@ -21,7 +21,7 @@ def extract_all_files(path):
 			path_file = os.path.join(root, file_)
 
 			if file_.endswith('csv'):
-				df = pd.read_csv(path_file)
+				df = pd.read_csv(path_file,error_bad_lines=False, encoding="ISO-8859-1")
 				df['path'] = root
 				df['file'] = file_
 				df['sheet'] = 'csv'
