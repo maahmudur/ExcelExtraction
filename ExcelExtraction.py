@@ -46,7 +46,6 @@ def extract_all_files(path):
 
 	return all_dfs
 
-
 def reset_all_index(all_dfs):
 	"""
 	error fixed: spelling of enumerate
@@ -73,31 +72,6 @@ def reset_all_index(all_dfs):
 
 		print "Among " + str(len(all_dfs)) + " DFs " + str(index_error) + " index error and " + str(value_error) + " value error encountered."
 		return all_dfs		    
-
-
-"""
-THIS IS A TEMPLATE CODE FOR FINDING OUT THE STARTING POSITION OF LEGIT DATA
-
-def generate_start_row(all_dfs):
-			try:
-                df[df.columns[0]] = df[df.columns[0]].astype(str)
-                val = df[df[df.columns[0]].str.contains("Date")].index[0]
-            except IndexError:
-                try:
-                    df[df.columns[1]] = df[df.columns[1]].astype(str)
-                    val = df[df[df.columns[1]].str.contains("Date")].index[0]
-                except IndexError:
-                    try:
-                        df[df.columns[2]] = df[df.columns[2]].astype(str)
-                        val = df[df[df.columns[2]].str.contains("Date")].index[0]
-                    except IndexError:
-                        print 'indexerror ' + str(ind)
-                        continue
-"""
-
-"""
-def generate_end_row(all_dfs):
-"""
 
 def create_sliced_df(all_dfs, start_row, end_row, date_dict=False):
 	sliced_dfs = {}
@@ -149,8 +123,6 @@ def set_columns(all_dfs, column_depth=1, metadata_cols=['path','file','sheet']):
 
 	return all_dfs
 
-
-
 def uniquify(df_columns):
 	"""
 	defining a function which will rename columns to ensure they are unique
@@ -169,8 +141,6 @@ def uniquify(df_columns):
         yield newitem
         seen.add(newitem)
 
-
-
 def all_templates(all_dfs):
 	"""
 	return a list of templates with their occurence
@@ -184,7 +154,6 @@ def all_templates(all_dfs):
 		cols = frozenset(df.columns)
 		column_formats.append(cols)
 	return pd.Series(column_formats).value_counts()
-	
 
 def verify_value_counts( Harmonised_DF):
 		"""
@@ -198,7 +167,6 @@ def verify_value_counts( Harmonised_DF):
 		
 		frequency_df=frequency_df.sort('%')[::-1]
 		return frequency_df
-
 
 def check_multiple_observation(concat_df, groupby_cols):
 		"""
@@ -227,8 +195,6 @@ def verify_values_range(df,cols):
 
 		return min_max_df
 
-
-
 def all_columns(all_dfs):
 	"""
 	solved: indentation error in first line inside for loop
@@ -240,8 +206,6 @@ def all_columns(all_dfs):
 		column_headers = list(column_headers)
 		column_headers.sort()
 	return column_headers
-
-
 
 def merged_lines(concat_df, delimiter = '&', line_col = 'line_no'):
 	"""
@@ -286,9 +250,6 @@ def merged_lines(concat_df, delimiter = '&', line_col = 'line_no'):
 	DF.drop(merged_index, inplace=True)
 
 	return DF
-
-
-
 
 def read_excel_data(source_folder):
 
@@ -347,3 +308,49 @@ def read_excel_data(source_folder):
 	            all_dfs.append(df)
 
 	return all_dfs
+
+def find_timeline(DF):
+
+    start_date = DF.date.min()
+    end_date = DF.date.max()
+    
+    months = []
+    with_year = []
+
+    while start_date <= end_date:
+        if start_date.month not in months:
+            months.append(start_date.month)
+            with_year.append((start_date.month,start_date.year))
+        start_date += datetime.timedelta(weeks=1)
+
+    DF['month'] = pd.Series([(item.month,item.year) if pd.notnull(item) else item for item in DF.date],index=DF.index)
+    
+    months_tuple = list(set(with_year)-set(list(DF.month.unique())))
+
+    missing_month = []
+    if len(months_tuple)>0:
+        for i in months_tuple:
+            missing_month.append(str(calendar.month_name[i[0]])+' '+str(i[1]))
+
+    print ('Available From: ',DF.date.min(), ' to ',DF.date.max())
+
+    print ()
+    print ('Consecutive Day Missing')
+
+    if len(missing_month)>0:
+
+        print()
+        print ('Data Missing: ',missing_month)
+    print()    
+
+    date_list = list(DF.date) 
+    date_list.sort()
+    for i in range(len(date_list)-1):
+        date1 = date_list[i]
+        date2 = date_list[i+1]
+        diff = date2-date1  
+        if diff.days > 6:
+
+            print(date1+datetime.timedelta(1), date2-datetime.timedelta(1),diff.days-1,'Days')
+            print ()
+	
