@@ -1,10 +1,23 @@
-import os
+"""
+This class provides the workflow tools to extract workbooks/sheets into pandas DF. 
+workflow:
+	- start the notebook in the "code folder" and place all raw data in "source folder", both of these folder being place 
+	  under same parent folder. Maintaining this directory structure is required.
+	- start an instance of ExcelExtration class
+	- extract raw data 
+	- if required, reset_index
+	- generate date_dict
+	- generate start_row_dict, end_row_dict
+	- extract desired dataset using start/end row value from raw DFs 
+"""
+
 import pandas as pd
 import numpy as np
 import xlrd
 
 def extract_all_files(path):
 	"""
+	T
 	"""
 	all_dfs = []
 	os.chdir(path)
