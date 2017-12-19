@@ -15,12 +15,12 @@ def extract_all_files(path):
             if not (file_.lower().endswith('xlsx') or file_.lower().endswith('xls') or file_.lower().endswith('csv')):
                 continue
 
-            if file_.lower().startswith('~$'):
+            if file_.lower().startswith('~$'):0
                 continue
             path_file = os.path.join(root, file_)
 
             if file_.endswith('csv'):
-                df = pd.read_csv(path_file, error_bad_lines=False, encoding='utf-8')
+                df = pd.read_csv(path_file, error_bad_lines=False, encoding='ISO-8859-1')
                 df['path'] = root
                 df['file'] = file_
                 df['sheet'] = 'csv'
@@ -404,4 +404,4 @@ def clean_float_column(column):
 
 def strings_in_column(df, column):
     return df[[True if type(item) == str else False for item in df[column]]][column].values
-	
+    
