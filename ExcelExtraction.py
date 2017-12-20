@@ -15,7 +15,7 @@ def extract_all_files(path):
             if not (file_.lower().endswith('xlsx') or file_.lower().endswith('xls') or file_.lower().endswith('csv')):
                 continue
 
-            if file_.lower().startswith('~$'):0
+            if file_.lower().startswith('~$'):
                 continue
             path_file = os.path.join(root, file_)
 
