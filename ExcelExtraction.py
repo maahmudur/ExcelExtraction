@@ -33,13 +33,18 @@ def extract_all_files(path):
                     sheets = excel.sheet_names
                     for sheet in sheets:
                         try:
-                            df = excel.parse(sheet)
+                            df = excel.parse(sheet, skiprows=1)
                             df['path'] = root
                             df['file'] = file_
                             df['sheet'] = sheet
                             if len(df) > 0:
                                 all_dfs.append(df)
+
                         except ParseError:
+                            print(path, file_, sheet)
+
+                        except ValueError:
+                            print("value_error occured, check if there's any empty rows or columns in the beginning of the sheet")
                             print(path, file_, sheet)
 
 
