@@ -7,6 +7,7 @@ import os #this module provides a portable way of using operating system depende
 import pandas as pd #library providing high-performance, easy-to-use data structures and data analysis tools
 import numpy as np #fundamental package for high-level mathematical functions
 import xlrd #library for developers to extract data from Microsoft Excel spreadsheet files
+from tqdm import tqdm
 
 
 
@@ -20,7 +21,7 @@ def extract_all_files(path):
 	"""
 	all_dfs = []
 
-	for root, dirs, files in os.walk(path):
+	for root, dirs, files in tqdm(os.walk(path)):
 		
 		for file_ in files:
 			
@@ -110,19 +111,19 @@ def create_sliced_df(all_dfs, start_row, end_row, date_dict=False):
 
 	"""
 	Keyword arguments:
-	all_dfs = list of dataframes
+	all_dfs = dictionary of dataframes
 	start_row = integer
 	start_row = integer
 	
 	returns dictionary
 
-	takes each dataframe from the list and slice off with provided start row and end row and finally returns a dictionary
+	takes each dataframe from the dictionary and slice off with provided start row and end row and finally returns a dictionary
 	with sliced dataframes
 	"""
 
 	sliced_dfs = {}
 
-	for key, df in all_dfs.items():
+	for key, df in tqdm(all_dfs.items()):
 		temp = df.ix[start_row[key]: end_row[key]]
 
 		if (date_dict):
@@ -134,6 +135,9 @@ def create_sliced_df(all_dfs, start_row, end_row, date_dict=False):
 
 
 def set_columns(all_dfs, column_depth=1, metadata_cols=['path', 'file', 'sheet']):
+	"""
+	replaces the datafame column names with the values of  "column_depth"(default=1) number of rows value
+	"""
 	for key, df in all_dfs.items():
 
 		cols = df.columns
@@ -170,6 +174,10 @@ def set_columns(all_dfs, column_depth=1, metadata_cols=['path', 'file', 'sheet']
 
 
 def uniquify(df_columns):
+	"""
+	takes a list of column names and gives back a set of unique column names
+	"""
+	
 	seen = set()
 
 	for item in df_columns:
@@ -186,10 +194,7 @@ def uniquify(df_columns):
 
 def all_templates(all_dfs):
 	"""
-	return a list of templates with their occurence
-
-	- change log:
-	set function change to frozenset
+	returns a list of templates with their occurence
 	"""
 	column_formats = []
 
@@ -201,6 +206,7 @@ def all_templates(all_dfs):
 
 def verify_value_counts(Harmonised_DF):
 	"""
+	takes a dataframe and provide information about data count and data types
 	"""
 	cols = Harmonised_DF.columns
 	frequency_df = pd.DataFrame(columns=['columns', 'count', '%', 'types'])
@@ -215,24 +221,33 @@ def verify_value_counts(Harmonised_DF):
 	return frequency_df
 
 
-"""
 def check_multiple_observation(concat_df, groupby_cols):
+	'''
+	concat_df = pandas dataframe
+	groupby_cols = list
 
-		multi_observation=[]
-		group= concat_df.groupby(by=groupby_cols)
-		for i,j in group:
-			if len(j)>1:
-				multi_observation.append(i)
-		print (len(multi_observation) # if its > 0 please check the raw/compiled data to ensure that its ok)
-		return multi_observation
-"""
+	The simple code creates a counter to tell you how many observations there are that are multiple days.
+	'''
+	Counter = 0                                               # counter for multiple observations
+	MIndex = []
+
+	for group in concat_df.groupby(groupby_cols):             # iterate through groups of data grouped by data/line_code
+	if len(group[1]) > 1:
+		Counter += 1
+		MIndex.extend(list(group[1].index))
+	
+	print Counter 
+	return MIndex
 
 
 def verify_values_range(df, cols):
 	"""
-	returns a df with min and max values in columns in cols of dataframe df
-	here cols are a list of columns with numerical data.
+	df = pandas dataframe
+	cols = list of columns names which has numerical data
+
+	returns a df with min and max values for each columns
 	"""
+	
 	min_max_df = pd.DataFrame(columns=['column', 'min', 'max'])
 	numeric_cols = cols  # populate the list with columns of numeric values
 
