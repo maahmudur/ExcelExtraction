@@ -26,7 +26,7 @@ def extract_all_files(path):
 		for file_ in files:
 			
 			#skip if files not in xlsx, xls and csv file format 
-			if not (file_.lower().endswith('xlsx') or file_.lower().endswith('xls') or file_.lower().endswith('csv')):
+			if not (file_.lower().endswith('xlsx') or file_.lower().endswith('xls') or file_.lower().endswith('csv') or file_.lower().endswith('xlsm') ):
 				continue
 
 			#skip any temp file
@@ -232,11 +232,11 @@ def check_multiple_observation(concat_df, groupby_cols):
 	MIndex = []
 
 	for group in concat_df.groupby(groupby_cols):             # iterate through groups of data grouped by data/line_code
-	if len(group[1]) > 1:
-		Counter += 1
-		MIndex.extend(list(group[1].index))
+		if len(group[1]) > 1:
+			Counter += 1
+			MIndex.extend(list(group[1].index))
 	
-	print Counter 
+		print (Counter) 
 	return MIndex
 
 
