@@ -422,3 +422,26 @@ def clean_float_column(column):
 def strings_in_column(df, column):
 	return df[[True if type(item) == str else False for item in df[column]]][column].values
 	
+
+def save_final_data(df, fact_code, report_name, wave, user_code, 
+                    production_flag = False, salary_flag = False):
+    """
+    save datasets in a standardized name and format
+    """
+    # check for empty columns
+    
+    # check production columns
+    
+    # check salary columns
+    
+    # Save the file 
+    date_ = datetime.datetime.today()
+    date_ = datetime.datetime.strftime(date_, "%Y%m%d")
+    
+    name_ = str(fact_code)+ "_"+ report_name+ "_"+  str(wave) + "_"+ date_ + "_" + user_code 
+    print(name_)
+    
+    df.to_csv("../"+name_+".csv", index=False)
+    df.to_pickle("../"+name_)
+    
+    return
