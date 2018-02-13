@@ -452,6 +452,7 @@ def save_final_data(df, fact_code, report_name, wave, user_code,
     # TODO: implement salary data checks
     #if salary_flag==True:
         # check salary columns
+        # PLEASE also include the verfied (Chris approved)  formula to calculate promotion and migration 
 
     # check monthwise data
     
