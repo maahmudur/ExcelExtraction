@@ -523,8 +523,7 @@ def generate_start_rows(data_files, data_report):
     fac_data_points = [item for item in data_report.fac_data_point if pd.notnull(item)]
     for key, df in enumerate(data_files):
         fac_data_point_matches = {}
-        for item in fac_data_points:
-            for index, row in df.iterrows():
+        for index, row in df.iterrows():
                 fac_data_point_matches[index] = len(set(fac_data_points) & set(row.values))
         start_rows[key] = sorted(fac_data_point_matches.items(), key= lambda x: x[1], reverse=True)[0][0]
     return start_rows
