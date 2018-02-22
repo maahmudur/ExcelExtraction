@@ -102,7 +102,7 @@ def reset_all_index(all_dfs):
 
 
 
-def create_sliced_df(all_dfs, start_row, end_row, date_dict=False):
+def create_sliced_df(all_dfs, start_row, end_row={}, date_dict=False):
 
     """
     Keyword arguments:
@@ -117,6 +117,10 @@ def create_sliced_df(all_dfs, start_row, end_row, date_dict=False):
     """
 
     sliced_dfs = {}
+
+    if len(end_row)==0:
+        for key, df in enumerate(all_dfs):
+            end_row[key] = len(df)
 
     for key, df in tqdm(all_dfs.items()):
         temp = df.ix[start_row[key]: end_row[key]]
