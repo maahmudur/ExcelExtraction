@@ -510,3 +510,21 @@ def get_data_report(fact_code, path='', file_name=''):
     else:
         df = excel_file.parse('data_input')
         return df
+
+
+def generate_start_rows(data_files, data_report):
+    """
+    data_file    :  list of dataframes, from factory files  
+    data_report  :  data report extracted from _get_data_report()_ function, 
+                    also before passing to the function filter with the report name.
+                    
+    """
+    start_rows = {}
+    fac_data_points = [item for item in data_report.fac_data_point if pd.notnull(item)]
+    for key, df in enumerate(data_files):
+        fac_data_point_matches = {}
+        for item in fac_data_points:
+            for index, row in df.iterrows():
+                fac_data_point_matches[index] = len(set(fac_data_points) & set(row.values))
+        start_rows[key] = sorted(fac_data_point_matches.items(), key= lambda x: x[1], reverse=True)[0][0]
+    return start_rows
