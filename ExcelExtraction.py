@@ -445,14 +445,13 @@ def save_final_data(df, fact_code, report_name, wave, user_code,
             df['line_code'] = [str(item) if pd.notnull(item) else item 
                                 for item in df['line_code']]
 
-
         # check production columns
         prod_cols = get_master_production_columns()
 
     # TODO: implement salary data checks
     #if salary_flag==True:
         # check salary columns
-        # PLEASE also include the verfied (Chris approved)  formula to calculate promotion and migration 
+        # PLEASE also include the verfied (Chris approved) formula to calculate promotion and migration 
 
     # check monthwise data
     
@@ -467,3 +466,43 @@ def save_final_data(df, fact_code, report_name, wave, user_code,
     df.to_pickle("../"+name_)
     
     return
+
+def get_data_report(fact_code, path='', file_name=''):
+    """
+    fact_code   :  4 digit factory code
+    
+    Parameter the factory code and return the data report for the factory code
+    
+    For all our projects we have data report files, 
+    which details the source, status and interpretation guidelines of the data and the data variables.
+    Instead of checking the files manually during cleaning the raw files, it would be easier to 
+    check if we have extracted the required variables as mentioned in the Data Report.
+    This function would be the first step to ensure consistency between data report and cleaned data.
+    
+    """
+
+    if path=='':
+        path = r"../"
+        while 'data reports' not in pd.Series(os.listdir(path)).str.lower().values:
+            path += "../"
+        data_report_folder_index = list(pd.Series(os.listdir(path)).str.lower()).index('data reports')        
+        path += os.listdir(path)[data_report_folder_index]
+
+    if file_name=='':
+        fact_data_report_file = [item for item in os.listdir(path) if item.startswith(str(fact_code))]
+        if len(fact_data_report_file)==1:
+            path += "/"+fact_data_report_file[0]
+        else:
+            print("Multiple files with same factory code in ", path, "\nPlease resolve conflict first and run again.")
+            return
+
+    excel_file = pd.ExcelFile(path)
+    sheets = excel_file.sheet_names
+    
+    if 'data_input' not in sheets:
+        print( "Cannot find data_input in sheets. Available sheets:\n" )
+        print(sheets)
+        return
+    else:
+        df = excel_file.parse('data_input')
+        return df
