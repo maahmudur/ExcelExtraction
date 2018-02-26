@@ -119,7 +119,7 @@ def create_sliced_df(all_dfs, start_row, end_row={}, date_dict=False):
     sliced_dfs = {}
 
     if len(end_row)==0:
-        for key, df in enumerate(all_dfs):
+        for key, df in all_dfs.items():
             end_row[key] = len(df)
 
     for key, df in tqdm(all_dfs.items()):
@@ -422,7 +422,6 @@ def save_final_data(df, fact_code, report_name, wave, user_code,
     """
     # check for empty columns
     columns = df.columns.values
-    #
     
     empty_cols = [ col for col in df.columns if df[col].count()==0 ]
 
@@ -448,6 +447,15 @@ def save_final_data(df, fact_code, report_name, wave, user_code,
         else:
             df['line_code'] = [str(item) if pd.notnull(item) else item 
                                 for item in df['line_code']]
+
+        all_dates = df.date.values 
+        all_dates.sort()
+        print("The date range: ")
+        print("From", min(all_dates), " to ",max(all_dates))
+
+        missing_dates = [(i,j, j-i) for i,j in zip(all_dates[:1], all_dates[1:]) if j-i>datetime.timedelta(8) ]
+        if len(missing_dates)>1:
+            print("missing date", missing_dates)
 
         # check production columns
         prod_cols = get_master_production_columns()
