@@ -60,6 +60,9 @@ def extract_all_files(path):
                         except ValueError: 
                             print("value_error occured, check if there's any empty rows or columns in the beginning of the sheet")
                             print(path, file_, sheet)
+                        except TypeError:
+                        	print("type_error occured")
+                        	print(path, file_, sheet)    
 
 
 
