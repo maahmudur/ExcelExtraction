@@ -7,7 +7,8 @@ import os #this module provides a portable way of using operating system depende
 import pandas as pd #library providing high-performance, easy-to-use data structures and data analysis tools
 import numpy as np #fundamental package for high-level mathematical functions
 import xlrd #library for developers to extract data from Microsoft Excel spreadsheet files
-from tqdm import tqdm
+from tqdm import tqdm # to show progress in some log loops
+from IPython.core.display import HTML # to print some formatted HTML in jupyter notebook
 import datetime
 
 def extract_all_files(path):
