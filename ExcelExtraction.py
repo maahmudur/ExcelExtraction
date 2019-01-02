@@ -66,9 +66,11 @@ def extract_all_files(path):
                         	print(path, file_, sheet)    
 
 
-
                 except xlrd.XLRDError:
                     print('XLRDError on ', path_file, sheets)
+
+                except xlrd.compdoc.CompDocError:
+                    print('Corrupted File: ', path_file, sheets)
 
     return all_dfs
 
