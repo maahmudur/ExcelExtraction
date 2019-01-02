@@ -52,7 +52,7 @@ def extract_all_files(path):
                     sheets = excel.sheet_names
                     for sheet in sheets:
                         try:
-                            df = excel.parse(sheet, skiprows=1)
+                            df = excel.parse(sheet)
                             df['path'] = root
                             df['file'] = file_
                             df['sheet'] = sheet
