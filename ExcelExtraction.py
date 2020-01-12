@@ -380,7 +380,7 @@ def read_excel_data(source_folder):
     return all_dfs
 
 
-def get_master_salary_columns(path=r"M:\Master List\varnames_170813.xlsx"):
+def get_master_salary_columns(path=r"X:\NextCloud\5. Data Team Working Folder\DataTeam MasterList\varnames_20180322.xlsx"):
     # path = r'M:\Master List'
     df = pd.ExcelFile(path).parse("Master List Columns")
 
